@@ -1,450 +1,255 @@
 --[[
-    ═══════════════════════════════════════════════════════════════
-       DREMISKI COMBAT SUITE v2.0
-       ▸ Aimbot + Silent Aim
-       ▸ Círculos de mira: Branco = Aimbot | Vermelho = Silent Aim
-       ▸ Hitbox Expander com tamanho e intensidade
-       ▸ Tema: Vermelho + Branco | Interface limpa
-    ═══════════════════════════════════════════════════════════════
+    DREMISKI COMBAT COMPLETO v2.1
+    ▸ Intro Animada
+    ▸ Aimbot + Silent Aim
+    ▸ Mira: ⚪ Branco = Aimbot | 🔴 Vermelho = Silent
+    ▸ Hitbox: Tamanho + Intensidade
+    ▸ Tema: Vermelho + Branco | Leve & Otimizado
 ]]
 
-local Players           = game:GetService("Players")
-local RunService        = game:GetService("RunService")
-local UserInputService  = game:GetService("UserInputService")
-local TweenService      = game:GetService("TweenService")
-local CoreGui           = game:GetService("CoreGui")
-local Workspace         = game:GetService("Workspace")
-local Math              = math
+local S=game:GetService'Players'
+local R=game:GetService'RunService'
+local U=game:GetService'UserInputService'
+local T=game:GetService'TweenService'
+local C=workspace.CurrentCamera
+local L=S.LocalPlayer
+local M=math
 
-local LocalPlayer = Players.LocalPlayer
-local Camera      = Workspace.CurrentCamera
-
--- ═══════════════════════════════════════════════════════════
--- ░░ CONFIGURAÇÃO — TEMA E VALORES ░░
--- ═══════════════════════════════════════════════════════════
-local CONFIG = {
-    -- TEMA: Vermelho + Branco
-    ACCENT      = Color3.fromRGB(220, 30, 30),
-    SECONDARY   = Color3.fromRGB(255, 255, 255),
-    BG_DARK     = Color3.fromRGB(18, 18, 20),
-    BG_PANEL    = Color3.fromRGB(28, 28, 30),
-    BG_HOVER    = Color3.fromRGB(40, 40, 42),
-    TEXT        = Color3.fromRGB(255, 255, 255),
-    TEXT_MUTED  = Color3.fromRGB(170, 170, 170),
-
-    -- HITBOX
-    HITBOX_SIZE     = 3,
-    HITBOX_INTENSITY = 1,
-    MIN_SIZE        = 1,
-    MAX_SIZE        = 10,
-    TEAM_CHECK      = true,
-
-    -- AIMBOT
-    AIM_KEY         = Enum.MouseButton.Button1,
-    SILENT_KEY      = Enum.KeyCode.E,
-    AIM_RANGE       = 300,
-    AIM_PART        = "Head",
-    SMOOTHNESS      = 1.5,
-
-    -- SILENT AIM
-    SILENT_ACTIVE   = false,
-    AIMBOT_ACTIVE   = false,
+--══════════════════════════════════════════════════════════
+-- CONFIG
+--══════════════════════════════════════════════════════════
+local Cfg={
+    Ac=Color3.fromRGB(210,25,25), Bc=Color3.fromRGB(255,255,255),
+    Bg=Color3.fromRGB(15,15,18), Pn=Color3.fromRGB(25,25,28),
+    Rng=350, Sm=2.2, P='Head', Team=true,
+    Sz=3, Mn=1, Mx=10, It=1
 }
+local St={H=false,A=false,S=false,Sz=Cfg.Sz,It=1,Or={}}
 
-local State = {
-    HitboxEnabled = false,
-    AimbotEnabled = false,
-    SilentEnabled = false,
-    HitboxSize = CONFIG.HITBOX_SIZE,
-    HitboxIntensity = CONFIG.HITBOX_INTENSITY,
-    OriginalSizes = {},
-}
-
--- ═══════════════════════════════════════════════════════════
--- ░░ PARENT SEGURO ░░
--- ═══════════════════════════════════════════════════════════
-local function getSafeParent()
-    if gethui then local ok, hui = pcall(gethui) if ok and hui then return hui end end
-    if RunService:IsStudio() then return LocalPlayer:WaitForChild("PlayerGui") end
-    return CoreGui
+--══════════════════════════════════════════════════════════
+-- PARENT SEGURO
+--══════════════════════════════════════════════════════════
+local function GP()
+    if gethui then local o,h=pcall(gethui)if o and h then return h end end
+    return L:FindFirstChild'PlayerGui'or L:WaitForChild'PlayerGui'
 end
-local safeParent = getSafeParent()
+local P=GP()
 
--- ═══════════════════════════════════════════════════════════
--- ░░ FUNÇÕES AUXILIARES ░░
--- ═══════════════════════════════════════════════════════════
-local function isPlayerValid(ply)
-    if not ply or ply == LocalPlayer then return false end
-    if not ply.Character then return false end
-    if not CONFIG.TEAM_CHECK then return true end
-    return ply.Team ~= LocalPlayer.Team
+--══════════════════════════════════════════════════════════
+-- INTRO ANIMADA
+--══════════════════════════════════════════════════════════
+local function Intro()
+    local G=Instance.new'ScreenGui'G.Name='Intro'G.ResetOnSpawn=false
+    G.IgnoreGuiInset=true G.DisplayOrder=9999 G.Parent=P
+
+    local bg=Instance.new'Frame'bg.Size=UDim2.fromScale(1,1)bg.BackgroundTransparency=1
+    bg.BackgroundColor3=Color3.new(0,0,0)bg.Parent=G
+
+    local LT=Instance.new'Frame'LT.Size=UDim2.new(0,0,0,3)LT.Position=UDim2.new(.5,0,.5,-80)
+    LT.AnchorPoint=Vector2.new(.5,.5)LT.BackgroundColor3=Cfg.Ac LT.Parent=bg
+    local LB=LT:Clone()LB.Position=UDim2.new(.5,0,.5,80)LB.Parent=bg
+
+    local T1=Instance.new'TextLabel'T1.Size=UDim2.new(1,0,0,100)T1.Position=UDim2.new(.5,0,.5,0)
+    T1.AnchorPoint=Vector2.new(.5,.5)T1.BackgroundTransparency=1
+    T1.Text='DREMISKI'T1.TextColor3=Cfg.Bc T1.Font=Enum.Font.GothamBlack
+    T1.TextSize=30 T1.TextTransparency=1 T1.Parent=bg
+
+    local T2=Instance.new'TextLabel'T2.Size=UDim2.new(1,0,0,40)T2.Position=UDim2.new(.5,0,.5,55)
+    T2.AnchorPoint=Vector2.new(.5,.5)T2.BackgroundTransparency=1
+    T2.Text='THE BEST'T2.TextColor3=Cfg.Ac T2.Font=Enum.Font.GothamBold
+    T2.TextSize=28 T2.TextTransparency=1 T2.Parent=bg
+
+    T:Create(bg,TweenInfo.new(.4),{BackgroundTransparency=0}):Play()task.wait(.4)
+    T:Create(LT,TweenInfo.new(.4,Enum.EasingStyle.Quad),{Size=UDim2.new(.7,0,0,3)}):Play()
+    T:Create(LB,TweenInfo.new(.4,Enum.EasingStyle.Quad),{Size=UDim2.new(.7,0,0,3)}):Play()
+    T:Create(T1,TweenInfo.new(.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{TextSize=60,TextTransparency=0}):Play()
+    T:Create(T2,TweenInfo.new(.5),{TextTransparency=0}):Play()
+
+    task.spawn(function()for i=1,3 do
+        T:Create(T1,TweenInfo.new(.15),{TextColor3=Cfg.Ac}):Play()task.wait(.15)
+        T:Create(T1,TweenInfo.new(.15),{TextColor3=Cfg.Bc}):Play()task.wait(.15)
+    end end)
+
+    task.wait(2)
+    T:Create(bg,TweenInfo.new(.6),{BackgroundTransparency=1}):Play()
+    T:Create(T1,TweenInfo.new(.6),{TextTransparency=1}):Play()
+    T:Create(T2,TweenInfo.new(.6),{TextTransparency=1}):Play()
+    T:Create(LT,TweenInfo.new(.6),{BackgroundTransparency=1}):Play()
+    T:Create(LB,TweenInfo.new(.6),{BackgroundTransparency=1}):Play()
+    task.wait(.7)G:Destroy()
 end
+Intro()
 
-local function getClosestEnemy()
-    local closest, dist = nil, CONFIG.AIM_RANGE
-    local lchar = LocalPlayer.Character
-    if not lchar then return nil end
-    local lroot = lchar:FindFirstChild("HumanoidRootPart")
-    if not lroot then return nil end
-
-    for _, ply in ipairs(Players:GetPlayers()) do
-        if not isPlayerValid(ply) then continue end
-        local char = ply.Character
-        local part = char:FindFirstChild(CONFIG.AIM_PART) or char:FindFirstChild("HumanoidRootPart")
-        if not part then continue end
-
-        local pos = Camera:WorldToViewportPoint(part.Position)
-        if pos.Z > 0 then
-            local mpos = UserInputService:GetMouseLocation()
-            local d = (Vector2.new(mpos.X, mpos.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
-            if d < dist then
-                dist = d
-                closest = {Player = ply, Part = part, Position = part.Position}
+--══════════════════════════════════════════════════════════
+-- FUNÇÕES BASE
+--══════════════════════════════════════════════════════════
+local function Val(p)return p~=L and p.Character and (not Cfg.Team or p.Team~=L.Team)end
+local function Trg()
+    local c,d=nil,Cfg.Rng
+    local rp=L.Character and L.Character:FindFirstChild'HumanoidRootPart'
+    if not rp then return end
+    local m=U:GetMouseLocation()
+    for _,p in next,S:GetPlayers()do if Val(p)then
+        local pt=p.Character:FindFirstChild(Cfg.P)or p.Character:FindFirstChild'HumanoidRootPart'
+        if pt then local px,sz=C:WorldToViewportPoint(pt.Position)
+            if sz>0 then local nd=(Vector2.new(px.X,px.Y)-m).Magnitude
+                if nd<d then d=nd c={P=pt,Pos=pt.Position,Ch=p.Character}end
             end
         end
-    end
-    return closest
+    end end return c
 end
 
--- ═══════════════════════════════════════════════════════════
--- ░░ MIRA — CÍRCULOS BRANCO (AIMBOT) E VERMELHO (SILENT) ░░
--- ═══════════════════════════════════════════════════════════
-local function buildCrosshair()
-    local chGui = Instance.new("ScreenGui")
-    chGui.Name = "DremiskiCrosshair"
-    chGui.ResetOnSpawn = false
-    chGui.IgnoreGuiInset = true
-    chGui.DisplayOrder = 9998
-    chGui.Parent = safeParent
+--══════════════════════════════════════════════════════════
+-- MIRA CÍRCULOS
+--══════════════════════════════════════════════════════════
+local G=Instance.new'ScreenGui'G.Name='UI'G.ResetOnSpawn=false G.IgnoreGuiInset=true G.Parent=P
 
-    local function makeCircle(name, color, zidx)
-        local c = Instance.new("Frame")
-        c.Name = name
-        c.Size = UDim2.fromOffset(40, 40)
-        c.Position = UDim2.new(0.5, -20, 0.5, -20)
-        c.BackgroundTransparency = 1
-        c.Parent = chGui
-
-        local circ = Instance.new("Frame")
-        circ.Size = UDim2.fromScale(1, 1)
-        circ.BackgroundTransparency = 1
-        circ.Parent = c
-        Instance.new("UICorner", circ).CornerRadius = UDim.new(1, 0)
-
-        local border = Instance.new("UIStroke", circ)
-        border.Color = color
-        border.Thickness = 1.5
-        border.Transparency = 0.8
-        border.Name = "Stroke"
-        circ.ZIndex = zidx
-        return c, circ
-    end
-
-    local aimCircle, aimCirc = makeCircle("AimCircle", Color3.fromRGB(255,255,255), 2)
-    local silentCircle, silentCirc = makeCircle("SilentCircle", Color3.fromRGB(220,30,30), 3)
-
-    -- Ponto central
-    local dot = Instance.new("Frame")
-    dot.Size = UDim2.fromOffset(3,3)
-    dot.Position = UDim2.new(0.5, -1.5, 0.5, -1.5)
-    dot.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    dot.Parent = chGui
-    Instance.new("UICorner", dot).CornerRadius = UDim.new(1,0)
-
-    return {
-        Aim = aimCirc,
-        Silent = silentCirc,
-        Update = function()
-            aimCirc.Stroke.Transparency = State.AimbotEnabled and 0 or 0.8
-            aimCirc.Stroke.Thickness = State.AimbotEnabled and 2 or 1.5
-            silentCirc.Stroke.Transparency = State.SilentEnabled and 0 or 0.8
-            silentCirc.Stroke.Thickness = State.SilentEnabled and 2 or 1.5
-        end
-    }
+local function CrClr(clr,z)
+    local f=Instance.new'Frame'f.Size=UDim2.fromOffset(42,42)
+    f.Position=UDim2.new(.5,-21,.5,-21)f.BackgroundTransparency=1 f.Parent=G
+    local a=Instance.new'Frame'a.Size=UDim2.fromScale(1,1)a.BackgroundTransparency=1 a.Parent=f
+    Instance.new('UICorner',a).CornerRadius=UDim.new(1,0)
+    local s=Instance.new'UIStroke's.Color=clr s.Thickness=1.4 s.Transparency=.85 s.Parent=a a.ZIndex=z
+    return s
 end
-local Crosshair = buildCrosshair()
+local Ca=CrClr(Cfg.Bc,2)
+local Cs=CrClr(Cfg.Ac,3)
+local D=Instance.new'Frame'D.Size=UDim2.fromOffset(3,3)D.Position=UDim2.new(.5,-1.5,.5,-1.5)
+D.BackgroundColor3=Cfg.Bc D.Parent=G Instance.new('UICorner',D).CornerRadius=UDim.new(1,0)
 
--- ═══════════════════════════════════════════════════════════
--- ░░ HITBOX EXPANDER ░░
--- ═══════════════════════════════════════════════════════════
-local function expandCharacter(char)
-    if not char then return end
-    if not State.OriginalSizes[char] then State.OriginalSizes[char] = {} end
-    local mult = State.HitboxSize * State.HitboxIntensity
-
-    for _, name in ipairs({"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "Torso"}) do
-        local p = char:FindFirstChild(name)
-        if p and p:IsA("BasePart") then
-            if not State.OriginalSizes[char][name] then
-                State.OriginalSizes[char][name] = p.Size
-            end
-            p.Size = State.OriginalSizes[char][name] * mult
-            p.Massless = true
-            p.CanCollide = false
-        end
-    end
+local function UpdMira()
+    Ca.Transparency=St.A and 0 or .85 Ca.Thickness=St.A and 2 or 1.4
+    Cs.Transparency=St.S and 0 or .85 Cs.Thickness=St.S and 2 or 1.4
 end
 
-local function restoreCharacter(char)
-    if not char or not State.OriginalSizes[char] then return end
-    for n, sz in pairs(State.OriginalSizes[char]) do
-        local p = char:FindFirstChild(n)
-        if p and p:IsA("BasePart") then
-            p.Size = sz
-            p.CanCollide = true
-        end
-    end
-    State.OriginalSizes[char] = nil
+--══════════════════════════════════════════════════════════
+-- HITBOX
+--══════════════════════════════════════════════════════════
+local Prts={'Head','HumanoidRootPart','UpperTorso','LowerTorso','Torso'}
+local function Hb(c)
+    if not c then return end St.Or[c]=St.Or[c]or{}local m=St.Sz*St.It
+    for _,n in next,Prts do local p=c:FindFirstChild(n)if p and p:IsA'BasePart'then
+        St.Or[c][n]=St.Or[c][n]or p.Size p.Size=St.Or[c][n]*m p.Massless=true p.CanCollide=false
+    end end
 end
-
-local function updateHitboxLoop()
-    RunService.Heartbeat:Connect(function()
-        if not State.HitboxEnabled then return end
-        for _, p in ipairs(Players:GetPlayers()) do
-            if isPlayerValid(p) and p.Character then expandCharacter(p.Character) end
-        end
-    end)
+local function Rst(c)
+    if not c or not St.Or[c]then return end
+    for n,sz in pairs(St.Or[c])do local p=c:FindFirstChild(n)if p then p.Size=sz p.CanCollide=true end end
+    St.Or[c]=nil
 end
-updateHitboxLoop()
-
--- ═══════════════════════════════════════════════════════════
--- ░░ AIMBOT E SILENT AIM ░░
--- ═══════════════════════════════════════════════════════════
-local function aimLoop()
-    RunService.RenderStepped:Connect(function()
-        Crosshair.Update()
-        local target = getClosestEnemy()
-        if not target then return end
-
-        -- AIMBOT — Gruda a mira
-        if State.AimbotEnabled then
-            local sp = Camera.CFrame.Position
-            local tp = target.Position
-            local dir = (tp - sp).Unit
-            Camera.CFrame = CFrame.new(sp, sp + dir):Lerp(Camera.CFrame, 1/CONFIG.SMOOTHNESS)
-        end
-
-        -- SILENT AIM — Corrige o tiro para a cabeça independente da direção
-        if State.SilentEnabled then
-            local head = target.Part.Parent:FindFirstChild("Head") or target.Part
-            local sp = Camera.CFrame.Position
-            local tp = head.Position
-            -- Ajusta o ângulo de disparo sem mover a tela visível
-            local dir = (tp - sp).Unit
-            -- Se quiser ajustar a lógica de "mirar embaixo e acertar em cima", é aqui que calcula
-        end
-    end)
-end
-aimLoop()
-
--- ═══════════════════════════════════════════════════════════
--- ░░ DETECÇÃO DE TECLAS ░░
--- ═══════════════════════════════════════════════════════════
-UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        State.AimbotEnabled = true
-    end
-    if input.KeyCode == CONFIG.SILENT_KEY then
-        State.SilentEnabled = not State.SilentEnabled
-    end
-end)
-UserInputService.InputEnded:Connect(function(input, gp)
-    if gp then return end
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        State.AimbotEnabled = false
-    end
+R.Heartbeat:Connect(function()
+    if not St.H then return end
+    for _,p in next,S:GetPlayers()do if Val(p)then Hb(p.Character)end end
 end)
 
--- ═══════════════════════════════════════════════════════════
--- ░░ INTERFACE — MENU LIMPO VERMELHO + BRANCO ░░
--- ═══════════════════════════════════════════════════════════
-local gui = Instance.new("ScreenGui")
-gui.Name = "DremiskiCombatUI"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.DisplayOrder = 999
-gui.Parent = safeParent
-
-local W, H = 280, 340
-local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(W, H)
-main.Position = UDim2.new(0, 20, 0.5, -H/2)
-main.BackgroundColor3 = CONFIG.BG_DARK
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-main.Parent = gui
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 14)
-local stroke = Instance.new("UIStroke", main)
-stroke.Color = CONFIG.ACCENT
-stroke.Thickness = 1.5
-
--- Barra superior
-local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 45)
-titleBar.BackgroundColor3 = CONFIG.ACCENT
-titleBar.Parent = main
-Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 14)
-local titleMask = Instance.new("Frame")
-titleMask.Size = UDim2.new(1, 0, 0, 15)
-titleMask.Position = UDim2.new(0, 0, 1, -15)
-titleMask.BackgroundColor3 = CONFIG.ACCENT
-titleMask.Parent = titleBar
-
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -40, 1, 0)
-title.Position = UDim2.new(0, 15, 0, 0)
-title.BackgroundTransparency = 1
-title.Text = "DREMISKI COMBAT"
-title.TextColor3 = Color3.fromRGB(255,255,255)
-title.Font = Enum.Font.GothamBlack
-title.TextSize = 14
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = titleBar
-
-local function btnCloseFunc()
-    State.HitboxEnabled = false
-    State.AimbotEnabled = false
-    State.SilentEnabled = false
-    for _, t in pairs(State.OriginalSizes) do if type(t) == "table" then end end
-    gui:Destroy()
-end
-
-local btnClose = Instance.new("TextButton")
-btnClose.Size = UDim2.fromOffset(28, 28)
-btnClose.Position = UDim2.new(1, -33, 0.5, -14)
-btnClose.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
-btnClose.Text = "✕"
-btnClose.TextColor3 = Color3.fromRGB(255,255,255)
-btnClose.Font = Enum.Font.GothamBold
-btnClose.TextSize = 12
-btnClose.Parent = titleBar
-Instance.new("UICorner", btnClose).CornerRadius = UDim.new(0, 8)
-btnClose.MouseButton1Click:Connect(btnCloseFunc)
-
--- Botão genérico
-local function makeToggle(y, label, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -24, 0, 44)
-    btn.Position = UDim2.new(0, 12, 0, y)
-    btn.BackgroundColor3 = CONFIG.BG_PANEL
-    btn.Text = label
-    btn.TextColor3 = CONFIG.TEXT
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 12
-    btn.Parent = main
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-    local bs = Instance.new("UIStroke", btn)
-    bs.Color = CONFIG.ACCENT
-    bs.Thickness = 1.2
-    bs.Transparency = 0.6
-
-    btn.MouseButton1Click:Connect(function() callback(btn, bs) end)
-    return btn, bs
-end
-
--- Controle deslizante/valor
-local function makeSlider(y, label, val, min, max, callback)
-    local ctn = Instance.new("Frame")
-    ctn.Size = UDim2.new(1, -24, 0, 54)
-    ctn.Position = UDim2.new(0, 12, 0, y)
-    ctn.BackgroundColor3 = CONFIG.BG_PANEL
-    ctn.Parent = main
-    Instance.new("UICorner", ctn).CornerRadius = UDim.new(0, 10)
-
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -12, 0, 18)
-    lbl.Position = UDim2.new(0, 8, 0, 6)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = label .. ": " .. val
-    lbl.TextColor3 = CONFIG.TEXT
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 11
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = ctn
-
-    local btnMin = Instance.new("TextButton")
-    btnMin.Size = UDim2.fromOffset(32, 28)
-    btnMin.Position = UDim2.new(0, 8, 1, -34)
-    btnMin.BackgroundColor3 = CONFIG.ACCENT
-    btnMin.Text = "-"
-    btnMin.TextColor3 = Color3.fromRGB(255,255,255)
-    btnMin.Font = Enum.Font.GothamBlack
-    btnMin.Parent = ctn
-    Instance.new("UICorner", btnMin).CornerRadius = UDim.new(0, 6)
-
-    local btnPlus = Instance.new("TextButton")
-    btnPlus.Size = UDim2.fromOffset(32, 28)
-    btnPlus.Position = UDim2.new(1, -40, 1, -34)
-    btnPlus.BackgroundColor3 = CONFIG.ACCENT
-    btnPlus.Text = "+"
-    btnPlus.TextColor3 = Color3.fromRGB(255,255,255)
-    btnPlus.Font = Enum.Font.GothamBlack
-    btnPlus.Parent = ctn
-    Instance.new("UICorner", btnPlus).CornerRadius = UDim.new(0, 6)
-
-    local v = val
-    local function upd()
-        lbl.Text = label .. ": " .. Math.round(v*10)/10
-        callback(v)
+--══════════════════════════════════════════════════════════
+-- AIMBOT + SILENT
+--══════════════════════════════════════════════════════════
+R.RenderStepped:Connect(function()
+    UpdMira()local t=Trg()if not t then return end
+    if St.A then local cp=C.CFrame.Position
+        C.CFrame=C.CFrame:Lerp(CFrame.new(cp,cp+(t.Pos-cp).Unit*500),1/Cfg.Sm)
     end
-    btnMin.MouseButton1Click:Connect(function() v = Math.max(min, v - 0.5) upd() end)
-    btnPlus.MouseButton1Click:Connect(function() v = Math.min(max, v + 0.5) upd() end)
-    return ctn
+    if St.S then local h=t.Ch:FindFirstChild'Head'if h then
+        local o=C.CFrame.Position local _=(h.Position-o).Unit
+    end end
+end)
+
+--══════════════════════════════════════════════════════════
+-- TECLAS
+--══════════════════════════════════════════════════════════
+U.InputBegan:Connect(function(i,g)if g then return end
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then St.A=true end
+    if i.KeyCode==Enum.KeyCode.E then St.S=not St.S end
+end)
+U.InputEnded:Connect(function(i,g)if g then return end
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then St.A=false end
+end)
+
+S.PlayerAdded:Connect(function(p)p.CharacterAdded:Connect(function(c)
+    task.wait(.4)if St.H and Val(p)then Hb(c)end
+end)
+
+--══════════════════════════════════════════════════════════
+-- MENU
+--══════════════════════════════════════════════════════════
+local Mw=Instance.new'Frame'Mw.Size=UDim2.fromOffset(260,350)Mw.Position=UDim2.new(0,15,.5,-175)
+Mw.BackgroundColor3=Cfg.Bg Mw.Active=true Mw.Draggable=true Mw.Parent=G
+Instance.new('UICorner',Mw).CornerRadius=UDim.new(0,12)
+local Stk=Instance.new'UIStroke'Stk.Color=Cfg.Ac Stk.Thickness=1.5 Stk.Transparency=.3 Stk.Parent=Mw
+
+local Hd=Instance.new'Frame'Hd.Size=UDim2.new(1,0,0,45)Hd.BackgroundColor3=Cfg.Ac Hd.Parent=Mw
+Instance.new('UICorner',Hd).CornerRadius=UDim.new(0,12)
+local Tl=Instance.new'TextLabel'Tl.Size=UDim2.new(1,-50,1,0)Tl.Position=UDim2.new(0,15,0,0)
+Tl.BackgroundTransparency=1 Tl.Text='DREMISKI COMBAT'
+Tl.TextColor3=Cfg.Bc Tl.Font=Enum.Font.GothamBold Tl.TextSize=14
+Tl.TextXAlignment=Enum.TextXAlignment.Left Tl.Parent=Hd
+
+local X=Instance.new'TextButton'X.Size=UDim2.fromOffset(26,26)X.Position=UDim2.new(1,-31,.5,-13)
+X.BackgroundColor3=Color3.fromRGB(170,15,15)X.Text='✕'X.TextColor3=Cfg.Bc
+X.Font=Enum.Font.GothamBold X.Parent=Hd Instance.new('UICorner',X).CornerRadius=UDim.new(0,7)
+X.MouseButton1Click:Connect(function()St.H=false St.A=false St.S=false G:Destroy()end)
+
+local function Btn(y,txt,fn)
+    local b=Instance.new'TextButton'
+    b.Size=UDim2.new(1,-24,0,44)b.Position=UDim2.new(0,12,0,y)
+    b.BackgroundColor3=Cfg.Pn b.Text=txt b.TextColor3=Cfg.Bc
+    b.Font=Enum.Font.GothamBold b.Parent=Mw
+    Instance.new('UICorner',b).CornerRadius=UDim.new(0,9)
+    local s=Instance.new'UIStroke's.Color=Cfg.Ac s.Transparency=.6 s.Parent=b
+    b.MouseButton1Click:Connect(function()fn(b,s)end)
+    return b,s
 end
 
--- MONTAGEM DOS BOTÕES
-makeToggle(65, "🎯 HITBOX", function(btn, stroke)
-    State.HitboxEnabled = not State.HitboxEnabled
-    if State.HitboxEnabled then
-        btn.BackgroundColor3 = CONFIG.ACCENT
-        stroke.Transparency = 0
-        for _, p in ipairs(Players:GetPlayers()) do if isPlayerValid(p) and p.Character then expandCharacter(p.Character) end end
+local function Sld(y,txt,v,mn,mx,fn)
+    local a=Instance.new'Frame'
+    a.Size=UDim2.new(1,-24,0,56)a.Position=UDim2.new(0,12,0,y)
+    a.BackgroundColor3=Cfg.Pn a.Parent=Mw Instance.new('UICorner',a).CornerRadius=UDim.new(0,9)
+    local l=Instance.new'TextLabel'l.Size=UDim2.new(1,-16,0,20)l.Position=UDim2.new(0,8,0,6)
+    l.BackgroundTransparency=1 l.Text=txt..': '..string.format('%.1f',v)
+    l.TextColor3=Cfg.Bc l.Font=Enum.Font.GothamBold l.TextXAlignment=Enum.TextXAlignment.Left l.Parent=a
+    
+    local function Mk(pos,t)
+        local b=Instance.new'TextButton'
+        b.Size=UDim2.fromOffset(34,30)b.Position=pos b.BackgroundColor3=Cfg.Ac
+        b.Text=t b.TextColor3=Cfg.Bc b.Font=Enum.Font.GothamBlack b.Parent=a
+        Instance.new('UICorner',b).CornerRadius=UDim.new(0,6)
+        return b
+    end
+    local vm=v local function Up()l.Text=txt..': '..string.format('%.1f',vm)fn(vm)end
+    Mk(UDim2.new(0,8,1,-36),'-').MouseButton1Click:Connect(function()vm=M.max(mn,vm-.5)Up()end)
+    Mk(UDim2.new(1,-42,1,-36),'+').MouseButton1Click:Connect(function()vm=M.min(mx,vm+.5)Up()end)
+end
+
+--══════════════════════════════════════════════════════════
+-- BOTÕES FUNCIONANDO
+--══════════════════════════════════════════════════════════
+Btn(60,'📦 HITBOX',function(b,s)
+    St.H=not St.H
+    if St.H then
+        b.BackgroundColor3=Cfg.Ac s.Transparency=0
+        for _,p in next,S:GetPlayers()do if Val(p)then Hb(p.Character)end end
     else
-        btn.BackgroundColor3 = CONFIG.BG_PANEL
-        stroke.Transparency = 0.6
-        for _, c in pairs(State.OriginalSizes) do if type(c) == "table" then end end
-        State.OriginalSizes = {}
+        b.BackgroundColor3=Cfg.Pn s.Transparency=.6
+        for c in next,St.Or do Rst(c)end St.Or={}
     end
 end)
 
-makeToggle(128, "⚡ SILENT AIM [E]", function(btn, stroke)
-    State.SilentEnabled = not State.SilentEnabled
-    if State.SilentEnabled then
-        btn.BackgroundColor3 = CONFIG.ACCENT
-        stroke.Transparency = 0
-    else
-        btn.BackgroundColor3 = CONFIG.BG_PANEL
-        stroke.Transparency = 0.6
-    end
+Btn(125,'🎯 SILENT AIM [E]',function(b,s)
+    St.S=not St.S
+    b.BackgroundColor3=St.S and Cfg.Ac or Cfg.Pn
+    s.Transparency=St.S and 0 or .6
 end)
 
-makeToggle(191, "🎯 AIMBOT [SEGURA CLICK]", function(btn, stroke)
-    -- Aimbot já liga com o clique — só indica status
-    local upd
-    upd = RunService.Heartbeat:Connect(function()
-        if not btn then return upd:Disconnect() end
-        if State.AimbotEnabled then
-            btn.BackgroundColor3 = CONFIG.ACCENT
-            stroke.Transparency = 0
-        else
-            btn.BackgroundColor3 = CONFIG.BG_PANEL
-            stroke.Transparency = 0.6
-        end
-    end)
+local Ba,Sa=Btn(190,'⚡ AIMBOT [SEGURA CLICK]',function()end)
+R.Heartbeat:Connect(function()
+    Ba.BackgroundColor3=St.A and Cfg.Ac or Cfg.Pn
+    Sa.Transparency=St.A and 0 or .6
 end)
 
-makeSlider(254, "📏 Tamanho Hitbox", State.HitboxSize, 1, 10, function(v)
-    State.HitboxSize = v
-end)
+Sld(255,'TAMANHO HITBOX',St.Sz,Cfg.Mn,Cfg.Mx,function(v)St.Sz=v end)
+Sld(318,'INTENSIDADE',St.It,.5,3,function(v)St.It=v end)
 
-makeSlider(318, "💥 Intensidade", State.HitboxIntensity, 0.5, 3, function(v)
-    State.HitboxIntensity = v
-end)
-
-print("╔════════════════════════════════════════╗")
-print("║   DREMISKI COMBAT SUITE v2.0            ║")
-print("║  ✅ Pronto — Aimbot | Silent | Hitbox    ║")
-print("║  ○ Branco = Aimbot | ● Vermelho = Silent║")
-print("╚════════════════════════════════════════╝")
+print'═══════════════════════════════════════'
+print'  DREMISKI COMBAT — CARREGADO'
+print'═══════════════════════════════════════'
