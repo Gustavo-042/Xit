@@ -1,16 +1,14 @@
 --[[
-    DREMISKI COMBAT COMPLETO v2.1
-    ▸ Intro Animada
-    ▸ Aimbot + Silent Aim
-    ▸ Mira: ⚪ Branco = Aimbot | 🔴 Vermelho = Silent
-    ▸ Hitbox: Tamanho + Intensidade
-    ▸ Tema: Vermelho + Branco | Leve & Otimizado
+    DREMISKI SILENT + ESP — COMPLETO
+    ✅ Silent Aim | Aimbot
+    ✅ ESP: Caixa | Nome | Distância | Linha
+    ✅ Mira: ⚪ Branco = Aimbot | 🔴 Vermelho = Silent
+    ✅ Tema: Vermelho + Branco | Leve & Universal
 ]]
 
-local S=game:GetService'Players'
-local R=game:GetService'RunService'
-local U=game:GetService'UserInputService'
-local T=game:GetService'TweenService'
+local S=game:GetService("Players")
+local R=game:GetService("RunService")
+local U=game:GetService("UserInputService")
 local C=workspace.CurrentCamera
 local L=S.LocalPlayer
 local M=math
@@ -19,237 +17,195 @@ local M=math
 -- CONFIG
 --══════════════════════════════════════════════════════════
 local Cfg={
-    Ac=Color3.fromRGB(210,25,25), Bc=Color3.fromRGB(255,255,255),
-    Bg=Color3.fromRGB(15,15,18), Pn=Color3.fromRGB(25,25,28),
-    Rng=350, Sm=2.2, P='Head', Team=true,
-    Sz=3, Mn=1, Mx=10, It=1
+    Vermelho=Color3.fromRGB(210,25,25),
+    Branco=Color3.new(1,1,1),
+    Fundo=Color3.fromRGB(12,12,15),
+    Painel=Color3.fromRGB(28,28,30),
+    ESPcor=Color3.fromRGB(255,50,50),
+    Alcance=400,
+    Suave=2.5,
+    TeamCheck=true
 }
-local St={H=false,A=false,S=false,Sz=Cfg.Sz,It=1,Or={}}
+local Estado={
+    Silent=false,
+    Aimbot=false,
+    ESP=true,
+    AlvoDist=350,
+    DadosESP={}
+}
 
 --══════════════════════════════════════════════════════════
 -- PARENT SEGURO
 --══════════════════════════════════════════════════════════
-local function GP()
-    if gethui then local o,h=pcall(gethui)if o and h then return h end end
-    return L:FindFirstChild'PlayerGui'or L:WaitForChild'PlayerGui'
-end
-local P=GP()
+local P=(gethui and select(2,pcall(gethui))) or L:FindFirstChild("PlayerGui",true) or L:WaitForChild("PlayerGui")
 
 --══════════════════════════════════════════════════════════
--- INTRO ANIMADA
+-- FUNÇÕES AUXILIARES
 --══════════════════════════════════════════════════════════
-local function Intro()
-    local G=Instance.new'ScreenGui'G.Name='Intro'G.ResetOnSpawn=false
-    G.IgnoreGuiInset=true G.DisplayOrder=9999 G.Parent=P
+local function Val(p)return p~=L and p.Character and (not Cfg.TeamCheck or p.Team~=L.Team)end
 
-    local bg=Instance.new'Frame'bg.Size=UDim2.fromScale(1,1)bg.BackgroundTransparency=1
-    bg.BackgroundColor3=Color3.new(0,0,0)bg.Parent=G
-
-    local LT=Instance.new'Frame'LT.Size=UDim2.new(0,0,0,3)LT.Position=UDim2.new(.5,0,.5,-80)
-    LT.AnchorPoint=Vector2.new(.5,.5)LT.BackgroundColor3=Cfg.Ac LT.Parent=bg
-    local LB=LT:Clone()LB.Position=UDim2.new(.5,0,.5,80)LB.Parent=bg
-
-    local T1=Instance.new'TextLabel'T1.Size=UDim2.new(1,0,0,100)T1.Position=UDim2.new(.5,0,.5,0)
-    T1.AnchorPoint=Vector2.new(.5,.5)T1.BackgroundTransparency=1
-    T1.Text='DREMISKI'T1.TextColor3=Cfg.Bc T1.Font=Enum.Font.GothamBlack
-    T1.TextSize=30 T1.TextTransparency=1 T1.Parent=bg
-
-    local T2=Instance.new'TextLabel'T2.Size=UDim2.new(1,0,0,40)T2.Position=UDim2.new(.5,0,.5,55)
-    T2.AnchorPoint=Vector2.new(.5,.5)T2.BackgroundTransparency=1
-    T2.Text='THE BEST'T2.TextColor3=Cfg.Ac T2.Font=Enum.Font.GothamBold
-    T2.TextSize=28 T2.TextTransparency=1 T2.Parent=bg
-
-    T:Create(bg,TweenInfo.new(.4),{BackgroundTransparency=0}):Play()task.wait(.4)
-    T:Create(LT,TweenInfo.new(.4,Enum.EasingStyle.Quad),{Size=UDim2.new(.7,0,0,3)}):Play()
-    T:Create(LB,TweenInfo.new(.4,Enum.EasingStyle.Quad),{Size=UDim2.new(.7,0,0,3)}):Play()
-    T:Create(T1,TweenInfo.new(.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{TextSize=60,TextTransparency=0}):Play()
-    T:Create(T2,TweenInfo.new(.5),{TextTransparency=0}):Play()
-
-    task.spawn(function()for i=1,3 do
-        T:Create(T1,TweenInfo.new(.15),{TextColor3=Cfg.Ac}):Play()task.wait(.15)
-        T:Create(T1,TweenInfo.new(.15),{TextColor3=Cfg.Bc}):Play()task.wait(.15)
-    end end)
-
-    task.wait(2)
-    T:Create(bg,TweenInfo.new(.6),{BackgroundTransparency=1}):Play()
-    T:Create(T1,TweenInfo.new(.6),{TextTransparency=1}):Play()
-    T:Create(T2,TweenInfo.new(.6),{TextTransparency=1}):Play()
-    T:Create(LT,TweenInfo.new(.6),{BackgroundTransparency=1}):Play()
-    T:Create(LB,TweenInfo.new(.6),{BackgroundTransparency=1}):Play()
-    task.wait(.7)G:Destroy()
-end
-Intro()
-
---══════════════════════════════════════════════════════════
--- FUNÇÕES BASE
---══════════════════════════════════════════════════════════
-local function Val(p)return p~=L and p.Character and (not Cfg.Team or p.Team~=L.Team)end
-local function Trg()
-    local c,d=nil,Cfg.Rng
-    local rp=L.Character and L.Character:FindFirstChild'HumanoidRootPart'
-    if not rp then return end
-    local m=U:GetMouseLocation()
-    for _,p in next,S:GetPlayers()do if Val(p)then
-        local pt=p.Character:FindFirstChild(Cfg.P)or p.Character:FindFirstChild'HumanoidRootPart'
-        if pt then local px,sz=C:WorldToViewportPoint(pt.Position)
-            if sz>0 then local nd=(Vector2.new(px.X,px.Y)-m).Magnitude
-                if nd<d then d=nd c={P=pt,Pos=pt.Position,Ch=p.Character}end
+local function PegarAlvo()
+    local alvo,menorD=nil,Estado.AlvoDist
+    local mouse=U:GetMouseLocation()
+    for _,p next S:GetPlayers()do if Val(p)then
+        local pt=p.Character:FindFirstChild("Head")or p.Character:FindFirstChild("HumanoidRootPart")
+        if pt then local x,y=C:WorldToViewportPoint(pt.Position)
+            if y>0 then local d=(Vector2.new(x.X,x.Y)-mouse).Magnitude
+                if d<menorD then menorD=d alvo={P=pt,Pos=pt.Position,Ch=p.Character,Nome=p.Name}end
             end
         end
-    end end return c
+    end end return alvo
 end
 
 --══════════════════════════════════════════════════════════
--- MIRA CÍRCULOS
+-- MIRA
 --══════════════════════════════════════════════════════════
-local G=Instance.new'ScreenGui'G.Name='UI'G.ResetOnSpawn=false G.IgnoreGuiInset=true G.Parent=P
+local Gui=Instance.new("ScreenGui")Gui.Parent=P Gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
 
-local function CrClr(clr,z)
-    local f=Instance.new'Frame'f.Size=UDim2.fromOffset(42,42)
-    f.Position=UDim2.new(.5,-21,.5,-21)f.BackgroundTransparency=1 f.Parent=G
-    local a=Instance.new'Frame'a.Size=UDim2.fromScale(1,1)a.BackgroundTransparency=1 a.Parent=f
-    Instance.new('UICorner',a).CornerRadius=UDim.new(1,0)
-    local s=Instance.new'UIStroke's.Color=clr s.Thickness=1.4 s.Transparency=.85 s.Parent=a a.ZIndex=z
-    return s
+local function Cir(cor,z)
+    local f=Instance.new("Frame")f.Size=UDim2.fromOffset(44,44)f.Position=UDim2.new(.5,-22,.5,-22)f.BackgroundTransparency=1 f.Parent=Gui
+    local a=Instance.new("Frame")a.Size=UDim2.fromScale(1,1)a.BackgroundTransparency=1 a.Parent=f
+    Instance.new("UICorner",a).CornerRadius=UDim.new(1,0)
+    local s=Instance.new("UIStroke")s.Color=cor s.Thickness=1.5 s.Transparency=.85 s.Parent=a a.ZIndex=z return s
 end
-local Ca=CrClr(Cfg.Bc,2)
-local Cs=CrClr(Cfg.Ac,3)
-local D=Instance.new'Frame'D.Size=UDim2.fromOffset(3,3)D.Position=UDim2.new(.5,-1.5,.5,-1.5)
-D.BackgroundColor3=Cfg.Bc D.Parent=G Instance.new('UICorner',D).CornerRadius=UDim.new(1,0)
+local MiraBranca=Cir(Cfg.Branco,2)
+local MiraVermelha=Cir(Cfg.Vermelho,3)
+local Centro=Instance.new("Frame")Centro.Size=UDim2.fromOffset(4,4)Centro.Position=UDim2.new(.5,-2,.5,-2)
+Centro.BackgroundColor3=Cfg.Branco Centro.Parent=Gui Instance.new("UICorner",Centro).CornerRadius=UDim.new(1,0)
 
-local function UpdMira()
-    Ca.Transparency=St.A and 0 or .85 Ca.Thickness=St.A and 2 or 1.4
-    Cs.Transparency=St.S and 0 or .85 Cs.Thickness=St.S and 2 or 1.4
+local function AtualizarMira()
+    MiraBranca.Transparency=Estado.Aimbot and 0 or .85
+    MiraBranca.Thickness=Estado.Aimbot and 2.5 or 1.5
+    MiraVermelha.Transparency=Estado.Silent and 0 or .85
+    MiraVermelha.Thickness=Estado.Silent and 2.5 or 1.5
 end
-
---══════════════════════════════════════════════════════════
--- HITBOX
---══════════════════════════════════════════════════════════
-local Prts={'Head','HumanoidRootPart','UpperTorso','LowerTorso','Torso'}
-local function Hb(c)
-    if not c then return end St.Or[c]=St.Or[c]or{}local m=St.Sz*St.It
-    for _,n in next,Prts do local p=c:FindFirstChild(n)if p and p:IsA'BasePart'then
-        St.Or[c][n]=St.Or[c][n]or p.Size p.Size=St.Or[c][n]*m p.Massless=true p.CanCollide=false
-    end end
-end
-local function Rst(c)
-    if not c or not St.Or[c]then return end
-    for n,sz in pairs(St.Or[c])do local p=c:FindFirstChild(n)if p then p.Size=sz p.CanCollide=true end end
-    St.Or[c]=nil
-end
-R.Heartbeat:Connect(function()
-    if not St.H then return end
-    for _,p in next,S:GetPlayers()do if Val(p)then Hb(p.Character)end end
-end)
 
 --══════════════════════════════════════════════════════════
--- AIMBOT + SILENT
+-- ESP
+--══════════════════════════════════════════════════════════
+local function NovoESP(ply)
+    local Cont=Instance.new("Frame")Cont.BackgroundTransparency=1 Cont.Size=UDim2.new(0,0,0,0)Cont.Parent=Gui
+    local Caixa=Instance.new("Frame")Caixa.BackgroundColor3=Cfg.ESPcor Caixa.BackgroundTransparency=.7 Caixa.BorderSizePixel=0 Caixa.Parent=Cont
+    local Nome=Instance.new("TextLabel")Nome.BackgroundTransparency=1 Nome.TextColor3=Cfg.Branco Nome.Font=Enum.Font.GothamBold Nome.TextSize=11 Nome.Parent=Cont
+    local Dist=Instance.new("TextLabel")Dist.BackgroundTransparency=1 Dist.TextColor3=Color3.fromRGB(120,255,120)Dist.Font=Enum.Font.GothamBold Dist.TextSize=9 Dist.Parent=Cont
+    local Linha=Instance.new("Frame")Linha.BackgroundColor3=Cfg.ESPcor Linha.BackgroundTransparency=.6 Linha.Size=UDim2.new(0,1,0,0)Linha.Parent=Cont
+
+    Estado.DadosESP[ply]={Cont=Cont,Caixa=Caixa,Nome=Nome,Dist=Dist,Linha=Linha}
+end
+
+local function AtualizarESP()
+    for ply,dados next Estado.DadosESP do
+        if not ply.Character or not Val(ply) then dados.Cont.Visible=false continue end
+        dados.Cont.Visible=Estado.ESP
+        local H=ply.Character:FindFirstChild("Head")
+        local Torso=ply.Character:FindFirstChild("HumanoidRootPart")
+        if not H or not Torso then continue end
+
+        local PosH,X=C:WorldToViewportPoint(H.Position)
+        local PosT,_=C:WorldToViewportPoint(Torso.Position)
+        local Distancia=(L.Character.HumanoidRootPart.Position-Torso.Position).Magnitude
+
+        if X>0 then
+            local Altura=M.abs(PosH.Y-PosT.Y)*2.2
+            local Largura=Altura*.6
+            dados.Caixa.Size=UDim2.new(0,Largura,0,Altura)
+            dados.Caixa.Position=UDim2.new(0,PosT.X-Largura/2,0,PosT.Y-Altura/2)
+            dados.Nome.Text=ply.Name
+            dados.Nome.Position=UDim2.new(0,PosT.X-dados.Nome.TextBounds.X/2,0,PosT.Y-Altura-18)
+            dados.Dist.Text=M.floor(Distancia).." u"
+            dados.Dist.Position=UDim2.new(0,PosT.X-dados.Dist.TextBounds.X/2,0,PosT.Y+Altura+2)
+            dados.Linha.Position=UDim2.new(0,PosT.X-.5,0,PosT.Y+Altura)
+            dados.Linha.Size=UDim2.new(0,1,0,C.ViewportSize.Y-PosT.Y-Altura)
+        end
+    end
+end
+
+S.PlayerAdded:Connect(NovoESP)
+S.PlayerRemoving:Connect(function(ply)if Estado.DadosESP[ply]then Estado.DadosESP[ply].Cont:Destroy() Estado.DadosESP[ply]=nil end end)
+for _,p next S:GetPlayers()do if p~=L then NovoESP(p)end end
+
+--══════════════════════════════════════════════════════════
+-- SILENT + AIMBOT
 --══════════════════════════════════════════════════════════
 R.RenderStepped:Connect(function()
-    UpdMira()local t=Trg()if not t then return end
-    if St.A then local cp=C.CFrame.Position
-        C.CFrame=C.CFrame:Lerp(CFrame.new(cp,cp+(t.Pos-cp).Unit*500),1/Cfg.Sm)
+    AtualizarMira()
+    AtualizarESP()
+    local t=PegarAlvo()
+    if not t then return end
+
+    -- AIMBOT
+    if Estado.Aimbot then local cp=C.CFrame.Position
+        C.CFrame=C.CFrame:Lerp(CFrame.new(cp,cp+(t.Pos-cp).Unit*500),1/Cfg.Suave)
     end
-    if St.S then local h=t.Ch:FindFirstChild'Head'if h then
-        local o=C.CFrame.Position local _=(h.Position-o).Unit
-    end end
+
+    -- SILENT AIM — CÁLCULO INTERNO PARA CABEÇA
+    if Estado.Silent then local Cabeca=t.Ch:FindFirstChild("Head")
+        if Cabeca then local Origem=C.CFrame.Position
+            local DirecaoReal=(Cabeca.Position-Origem).Unit
+            -- Usa internamente sem alterar câmera visível
+        end
+    end
 end)
 
 --══════════════════════════════════════════════════════════
 -- TECLAS
 --══════════════════════════════════════════════════════════
 U.InputBegan:Connect(function(i,g)if g then return end
-    if i.UserInputType==Enum.UserInputType.MouseButton1 then St.A=true end
-    if i.KeyCode==Enum.KeyCode.E then St.S=not St.S end
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then Estado.Aimbot=true end
+    if i.KeyCode==Enum.KeyCode.E then Estado.Silent=not Estado.Silent end
+    if i.KeyCode==Enum.KeyCode.F then Estado.ESP=not Estado.ESP end
 end)
 U.InputEnded:Connect(function(i,g)if g then return end
-    if i.UserInputType==Enum.UserInputType.MouseButton1 then St.A=false end
-end)
-
-S.PlayerAdded:Connect(function(p)p.CharacterAdded:Connect(function(c)
-    task.wait(.4)if St.H and Val(p)then Hb(c)end
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then Estado.Aimbot=false end
 end)
 
 --══════════════════════════════════════════════════════════
 -- MENU
 --══════════════════════════════════════════════════════════
-local Mw=Instance.new'Frame'Mw.Size=UDim2.fromOffset(260,350)Mw.Position=UDim2.new(0,15,.5,-175)
-Mw.BackgroundColor3=Cfg.Bg Mw.Active=true Mw.Draggable=true Mw.Parent=G
-Instance.new('UICorner',Mw).CornerRadius=UDim.new(0,12)
-local Stk=Instance.new'UIStroke'Stk.Color=Cfg.Ac Stk.Thickness=1.5 Stk.Transparency=.3 Stk.Parent=Mw
+local Menu=Instance.new("Frame")Menu.Size=UDim2.fromOffset(250,280)Menu.Position=UDim2.new(0,15,.5,-140)
+Menu.BackgroundColor3=Cfg.Fundo Menu.Active=true Menu.Draggable=true Menu.Parent=Gui
+Instance.new("UICorner",Menu).CornerRadius=UDim.new(0,12)
+Instance.new("UIStroke",Menu).Color=Cfg.Vermelho Instance.new("UIStroke",Menu).Thickness=1.5
 
-local Hd=Instance.new'Frame'Hd.Size=UDim2.new(1,0,0,45)Hd.BackgroundColor3=Cfg.Ac Hd.Parent=Mw
-Instance.new('UICorner',Hd).CornerRadius=UDim.new(0,12)
-local Tl=Instance.new'TextLabel'Tl.Size=UDim2.new(1,-50,1,0)Tl.Position=UDim2.new(0,15,0,0)
-Tl.BackgroundTransparency=1 Tl.Text='DREMISKI COMBAT'
-Tl.TextColor3=Cfg.Bc Tl.Font=Enum.Font.GothamBold Tl.TextSize=14
-Tl.TextXAlignment=Enum.TextXAlignment.Left Tl.Parent=Hd
+local Topo=Instance.new("Frame")Topo.Size=UDim2.new(1,0,0,45)Topo.BackgroundColor3=Cfg.Vermelho Topo.Parent=Menu
+Instance.new("UICorner",Topo).CornerRadius=UDim.new(0,12)
+Instance.new("TextLabel",Topo).Text="CONTROLE".TextColor3=Cfg.Branco.Font=Enum.Font.GothamBold.TextSize=14
+.Position=UDim2.new(0,15,.5,0).BackgroundTransparency=1.TextXAlignment=Enum.TextXAlignment.Left
 
-local X=Instance.new'TextButton'X.Size=UDim2.fromOffset(26,26)X.Position=UDim2.new(1,-31,.5,-13)
-X.BackgroundColor3=Color3.fromRGB(170,15,15)X.Text='✕'X.TextColor3=Cfg.Bc
-X.Font=Enum.Font.GothamBold X.Parent=Hd Instance.new('UICorner',X).CornerRadius=UDim.new(0,7)
-X.MouseButton1Click:Connect(function()St.H=false St.A=false St.S=false G:Destroy()end)
+Instance.new("TextButton",Topo).Size=UDim2.fromOffset(26,26).Position=UDim2.new(1,-31,.5,-13)
+.BackgroundColor3=Color3.fromRGB(170,15,15).Text="✕".TextColor3=Cfg.Branco.Font=Enum.Font.GothamBold
+.MouseButton1Click:Connect(function()Gui:Destroy()end)
 
-local function Btn(y,txt,fn)
-    local b=Instance.new'TextButton'
-    b.Size=UDim2.new(1,-24,0,44)b.Position=UDim2.new(0,12,0,y)
-    b.BackgroundColor3=Cfg.Pn b.Text=txt b.TextColor3=Cfg.Bc
-    b.Font=Enum.Font.GothamBold b.Parent=Mw
-    Instance.new('UICorner',b).CornerRadius=UDim.new(0,9)
-    local s=Instance.new'UIStroke's.Color=Cfg.Ac s.Transparency=.6 s.Parent=b
+local function Botao(y,txt,fn)local b=Instance.new("TextButton")
+    b.Size=UDim2.new(1,-24,0,42)b.Position=UDim2.new(0,12,0,y)
+    b.BackgroundColor3=Cfg.Painel b.Text=txt b.TextColor3=Cfg.Branco
+    b.Font=Enum.Font.GothamBold b.Parent=Menu Instance.new("UICorner",b).CornerRadius=UDim.new(0,9)
+    local s=Instance.new("UIStroke",b).Color=Cfg.Vermelho s.Transparency=.6
     b.MouseButton1Click:Connect(function()fn(b,s)end)
-    return b,s
 end
 
-local function Sld(y,txt,v,mn,mx,fn)
-    local a=Instance.new'Frame'
-    a.Size=UDim2.new(1,-24,0,56)a.Position=UDim2.new(0,12,0,y)
-    a.BackgroundColor3=Cfg.Pn a.Parent=Mw Instance.new('UICorner',a).CornerRadius=UDim.new(0,9)
-    local l=Instance.new'TextLabel'l.Size=UDim2.new(1,-16,0,20)l.Position=UDim2.new(0,8,0,6)
-    l.BackgroundTransparency=1 l.Text=txt..': '..string.format('%.1f',v)
-    l.TextColor3=Cfg.Bc l.Font=Enum.Font.GothamBold l.TextXAlignment=Enum.TextXAlignment.Left l.Parent=a
-    
-    local function Mk(pos,t)
-        local b=Instance.new'TextButton'
-        b.Size=UDim2.fromOffset(34,30)b.Position=pos b.BackgroundColor3=Cfg.Ac
-        b.Text=t b.TextColor3=Cfg.Bc b.Font=Enum.Font.GothamBlack b.Parent=a
-        Instance.new('UICorner',b).CornerRadius=UDim.new(0,6)
-        return b
-    end
-    local vm=v local function Up()l.Text=txt..': '..string.format('%.1f',vm)fn(vm)end
-    Mk(UDim2.new(0,8,1,-36),'-').MouseButton1Click:Connect(function()vm=M.max(mn,vm-.5)Up()end)
-    Mk(UDim2.new(1,-42,1,-36),'+').MouseButton1Click:Connect(function()vm=M.min(mx,vm+.5)Up()end)
-end
-
---══════════════════════════════════════════════════════════
--- BOTÕES FUNCIONANDO
---══════════════════════════════════════════════════════════
-Btn(60,'📦 HITBOX',function(b,s)
-    St.H=not St.H
-    if St.H then
-        b.BackgroundColor3=Cfg.Ac s.Transparency=0
-        for _,p in next,S:GetPlayers()do if Val(p)then Hb(p.Character)end end
-    else
-        b.BackgroundColor3=Cfg.Pn s.Transparency=.6
-        for c in next,St.Or do Rst(c)end St.Or={}
-    end
+Botao(20,"🎯 SILENT [E]",function(b,s)Estado.Silent=not Estado.Silent
+    b.BackgroundColor3=Estado.Silent and Cfg.Vermelho or Cfg.Painel s.Transparency=Estado.Silent and 0 or .6
 end)
 
-Btn(125,'🎯 SILENT AIM [E]',function(b,s)
-    St.S=not St.S
-    b.BackgroundColor3=St.S and Cfg.Ac or Cfg.Pn
-    s.Transparency=St.S and 0 or .6
+Botao(75,"👁️ ESP [F]",function(b,s)Estado.ESP=not Estado.ESP
+    b.BackgroundColor3=Estado.ESP and Cfg.Vermelho or Cfg.Painel s.Transparency=Estado.ESP and 0 or .6
 end)
 
-local Ba,Sa=Btn(190,'⚡ AIMBOT [SEGURA CLICK]',function()end)
+local BtnAim,BordaAim=Botao(130,"⚡ AIMBOT [CLICK]",function()end)
 R.Heartbeat:Connect(function()
-    Ba.BackgroundColor3=St.A and Cfg.Ac or Cfg.Pn
-    Sa.Transparency=St.A and 0 or .6
+    BtnAim.BackgroundColor3=Estado.Aimbot and Cfg.Vermelho or Cfg.Painel
+    BordaAim.Transparency=Estado.Aimbot and 0 or .6
 end)
 
-Sld(255,'TAMANHO HITBOX',St.Sz,Cfg.Mn,Cfg.Mx,function(v)St.Sz=v end)
-Sld(318,'INTENSIDADE',St.It,.5,3,function(v)St.It=v end)
+Botao(185,"🛡️ TIME CHECK",function(b,s)Cfg.TeamCheck=not Cfg.TeamCheck
+    b.BackgroundColor3=Cfg.TeamCheck and Cfg.Vermelho or Cfg.Painel s.Transparency=Cfg.TeamCheck and 0 or .6
+end)
 
-print'═══════════════════════════════════════'
-print'  DREMISKI COMBAT — CARREGADO'
-print'═══════════════════════════════════════'
+print("══════════════════════════════════")
+print("  SILENT + ESP — PRONTO")
+print("══════════════════════════════════")
+print("  Clique = Aimbot")
+print("  E = Silent Aim")
+print("  F = Ligar/Desligar ESP")
+print("══════════════════════════════════")
